@@ -12,8 +12,8 @@ const LOCAL_RELAY_SERVER_URL: string = 'http://localhost:9000/teams/nG4F5A3BFSBz
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 
-import { RealtimeClient } from '@openai/realtime-api-beta';
-import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
+import { RealtimeClient } from '../lib/realtime-api-beta';
+import { ItemType } from '../lib/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
 import { WavRenderer } from '../utils/wav_renderer';
 
