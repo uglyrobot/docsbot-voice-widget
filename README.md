@@ -7,8 +7,6 @@ that acts as a **Reference Client** (for browser and Node.js) and
 [`/src/lib/wavtools`](./src/lib/wavtools) which allows for simple audio
 management in the browser.
 
-<img src="/readme/realtime-console-demo.png" width="800" />
-
 # Starting the console
 
 This is a React project created using `create-react-app` that is bundled via Webpack.
@@ -50,63 +48,7 @@ To start a session you'll need to **connect**. This will require microphone acce
 You can then choose between **manual** (Push-to-talk) and **vad** (Voice Activity Detection)
 conversation modes, and switch between them at any time.
 
-There are two functions enabled;
-
-- `get_weather`: Ask for the weather anywhere and the model will do its best to pinpoint the
-  location, show it on a map, and get the weather for that location. Note that it doesn't
-  have location access, and coordinates are "guessed" from the model's training data so
-  accuracy might not be perfect.
-- `set_memory`: You can ask the model to remember information for you, and it will store it in
-  a JSON blob on the left.
-
 You can freely interrupt the model at any time in push-to-talk or VAD mode.
-
-## Using a relay server
-
-If you would like to build a more robust implementation and play around with the reference
-client using your own server, we have included a Node.js [Relay Server](/relay-server/index.js).
-
-```shell
-$ npm run relay
-```
-
-It will start automatically on `localhost:8081`.
-
-**You will need to create a `.env` file** with the following configuration:
-
-```conf
-OPENAI_API_KEY=YOUR_API_KEY
-REACT_APP_LOCAL_RELAY_SERVER_URL=http://localhost:8081
-```
-
-You will need to restart both your React app and relay server for the `.env.` changes
-to take effect. The local server URL is loaded via [`ConsolePage.tsx`](/src/pages/ConsolePage.tsx).
-To stop using the relay server at any time, simply delete the environment
-variable or set it to empty string.
-
-```javascript
-/**
- * Running a local relay server will allow you to hide your API key
- * and run custom logic on the server
- *
- * Set the local relay server address to:
- * REACT_APP_LOCAL_RELAY_SERVER_URL=http://localhost:8081
- *
- * This will also require you to set OPENAI_API_KEY= in a `.env` file
- * You can run it with `npm run relay`, in parallel with `npm start`
- */
-const LOCAL_RELAY_SERVER_URL: string =
-  process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
-```
-
-This server is **only a simple message relay**, but it can be extended to:
-
-- Hide API credentials if you would like to ship an app to play with online
-- Handle certain calls you would like to keep secret (e.g. `instructions`) on
-  the server directly
-- Restrict what types of events the client can receive and send
-
-You will have to implement these features yourself.
 
 # Realtime API reference client
 
@@ -350,23 +292,3 @@ trackOffset.trackId; // "my-track"
 trackOffset.offset; // sample number
 trackOffset.currentTime; // time in track
 ```
-
-# Acknowledgements and contact
-
-Thanks for checking out the Realtime Console. We hope you have fun with the Realtime API.
-Special thanks to the whole Realtime API team for making this possible. Please feel free
-to reach out, ask questions, or give feedback by creating an issue on the repository.
-You can also reach out and let us know what you think directly!
-
-- OpenAI Developers / [@OpenAIDevs](https://x.com/OpenAIDevs)
-- Jordan Sitkin / API / [@dustmason](https://x.com/dustmason)
-- Mark Hudnall / API / [@landakram](https://x.com/landakram)
-- Peter Bakkum / API / [@pbbakkum](https://x.com/pbbakkum)
-- Atty Eleti / API / [@athyuttamre](https://x.com/athyuttamre)
-- Jason Clark / API / [@onebitToo](https://x.com/onebitToo)
-- Karolis Kosas / Design / [@karoliskosas](https://x.com/karoliskosas)
-- Keith Horwood / API + DX / [@keithwhor](https://x.com/keithwhor)
-- Romain Huet / DX / [@romainhuet](https://x.com/romainhuet)
-- Katia Gil Guzman / DX / [@kagigz](https://x.com/kagigz)
-- Ilan Bigio / DX / [@ilanbigio](https://x.com/ilanbigio)
-- Kevin Whinnery / DX / [@kevinwhinnery](https://x.com/kevinwhinnery)
