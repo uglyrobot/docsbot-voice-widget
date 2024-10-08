@@ -15,11 +15,11 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { RealtimeClient } from '../lib/realtime-api-beta';
 import { ItemType } from '../lib/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
-import { WavRenderer } from '../utils/wav_renderer';
 
 import { X, Edit, Zap, ArrowUp, ArrowDown } from 'react-feather';
 import { Button } from '../components/button/Button';
 import { Toggle } from '../components/toggle/Toggle';
+import { Voice } from '../components/voice/Voice';
 
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
@@ -76,8 +76,9 @@ export function ConsolePage() {
     [key: string]: boolean;
   }>({});
   const [isConnected, setIsConnected] = useState(false);
-  const [canPushToTalk, setCanPushToTalk] = useState(true);
+  const [canPushToTalk, setCanPushToTalk] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [latestTranscript, setLatestTranscript] = useState<string>("");
 
   /**
    * Utility for formatting the timing of logs
@@ -111,7 +112,6 @@ export function ConsolePage() {
 
     // Set state variables
     startTimeRef.current = new Date().toISOString();
-    setIsConnected(true);
     setRealtimeEvents([]);
     setItems(client.conversation.getItems());
 
@@ -127,6 +127,8 @@ export function ConsolePage() {
     if (client.getTurnDetectionType() === 'server_vad') {
       await wavRecorder.record((data) => client.appendInputAudio(data.mono));
     }
+    await client.waitForSessionCreated();
+    setIsConnected(true);
   }, []);
 
   /**
@@ -227,75 +229,6 @@ export function ConsolePage() {
     }
   }, [items]);
 
-  /**
-   * Set up render loops for the visualization canvas
-   */
-  useEffect(() => {
-    let isLoaded = true;
-
-    const wavRecorder = wavRecorderRef.current;
-    const clientCanvas = clientCanvasRef.current;
-    let clientCtx: CanvasRenderingContext2D | null = null;
-
-    const wavStreamPlayer = wavStreamPlayerRef.current;
-    const serverCanvas = serverCanvasRef.current;
-    let serverCtx: CanvasRenderingContext2D | null = null;
-
-    const render = () => {
-      if (isLoaded) {
-        if (clientCanvas) {
-          if (!clientCanvas.width || !clientCanvas.height) {
-            clientCanvas.width = clientCanvas.offsetWidth;
-            clientCanvas.height = clientCanvas.offsetHeight;
-          }
-          clientCtx = clientCtx || clientCanvas.getContext('2d');
-          if (clientCtx) {
-            clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
-            const result = wavRecorder.recording
-              ? wavRecorder.getFrequencies('voice')
-              : { values: new Float32Array([0]) };
-            WavRenderer.drawBars(
-              clientCanvas,
-              clientCtx,
-              result.values,
-              '#0099ff',
-              10,
-              0,
-              8
-            );
-          }
-        }
-        if (serverCanvas) {
-          if (!serverCanvas.width || !serverCanvas.height) {
-            serverCanvas.width = serverCanvas.offsetWidth;
-            serverCanvas.height = serverCanvas.offsetHeight;
-          }
-          serverCtx = serverCtx || serverCanvas.getContext('2d');
-          if (serverCtx) {
-            serverCtx.clearRect(0, 0, serverCanvas.width, serverCanvas.height);
-            const result = wavStreamPlayer.analyser
-              ? wavStreamPlayer.getFrequencies('voice')
-              : { values: new Float32Array([0]) };
-            WavRenderer.drawBars(
-              serverCanvas,
-              serverCtx,
-              result.values,
-              '#009900',
-              10,
-              0,
-              8
-            );
-          }
-        }
-        window.requestAnimationFrame(render);
-      }
-    };
-    render();
-
-    return () => {
-      isLoaded = false;
-    };
-  }, []);
 
   /**
    * Core RealtimeClient and audio capture setup
@@ -341,6 +274,11 @@ export function ConsolePage() {
         item.formatted.file = wavFile;
       }
       setItems(items);
+
+      // Update the latest transcript if the item is from the assistant
+      if (item.role === 'assistant' && item.formatted.transcript) {
+        setLatestTranscript(item.formatted.transcript);
+      }
     });
 
     setItems(client.conversation.getItems());
@@ -350,6 +288,20 @@ export function ConsolePage() {
       client.reset();
     };
   }, []);
+
+  const handleVoiceStart = async () => {
+    if (!isConnected) {
+      await connectConversation();
+    }
+    startRecording();
+  };
+
+  const handleVoiceStop = () => {
+    if (isConnected) {
+      disconnectConversation();
+    }
+  };
+
 
   /**
    * Render the application
@@ -519,6 +471,7 @@ export function ConsolePage() {
               />
             )}
             <div className="spacer" />
+            {/* Button to connect or disconnect from the conversation 
             <Button
               label={isConnected ? 'disconnect' : 'connect'}
               iconPosition={isConnected ? 'end' : 'start'}
@@ -527,10 +480,18 @@ export function ConsolePage() {
               onClick={
                 isConnected ? disconnectConversation : connectConversation
               }
-            />
+            />*/}
           </div>
         </div>
       </div>
+      <Voice 
+        onStart={handleVoiceStart} 
+        onStop={handleVoiceStop} 
+        isConnected={isConnected}
+        clientAudio={wavRecorderRef}
+        serverAudio={wavStreamPlayerRef}
+        caption={latestTranscript} // Pass the latest transcript as the caption
+      />
     </div>
   );
 }

@@ -397,7 +397,7 @@ export class RealtimeClient extends RealtimeEventHandler {
       throw new Error(`Already connected, use .disconnect() first`);
     }
     await this.realtime.connect();
-    this.updateSession();
+    //this.updateSession();
     return true;
   }
 
@@ -547,9 +547,14 @@ export class RealtimeClient extends RealtimeEventHandler {
   /**
    * Sends user message content and generates a response
    * @param {Array<InputTextContentType|InputAudioContentType>} content
-   * @returns {true}
+   * @returns {boolean}
    */
   sendUserMessageContent(content = []) {
+    if (!this.isConnected()) {
+      console.warn('RealtimeClient is not connected. Unable to send user message content.');
+      return false;
+    }
+
     if (content.length) {
       for (const c of content) {
         if (c.type === 'input_audio') {
@@ -573,9 +578,14 @@ export class RealtimeClient extends RealtimeEventHandler {
   /**
    * Appends user audio to the existing audio buffer
    * @param {Int16Array|ArrayBuffer} arrayBuffer
-   * @returns {true}
+   * @returns {boolean}
    */
   appendInputAudio(arrayBuffer) {
+    if (!this.isConnected()) {
+      console.warn('RealtimeClient is not connected. Unable to append input audio.');
+      return false;
+    }
+
     if (arrayBuffer.byteLength > 0) {
       this.realtime.send('input_audio_buffer.append', {
         audio: RealtimeUtils.arrayBufferToBase64(arrayBuffer),
@@ -590,9 +600,14 @@ export class RealtimeClient extends RealtimeEventHandler {
 
   /**
    * Forces a model response generation
-   * @returns {true}
+   * @returns {boolean}
    */
   createResponse() {
+    if (!this.isConnected()) {
+      console.warn('RealtimeClient is not connected. Unable to create response.');
+      return false;
+    }
+
     if (
       this.getTurnDetectionType() === null &&
       this.inputAudioBuffer.byteLength > 0
@@ -613,6 +628,11 @@ export class RealtimeClient extends RealtimeEventHandler {
    * @returns {{item: (AssistantItemType | null)}}
    */
   cancelResponse(id, sampleCount = 0) {
+    if (!this.isConnected()) {
+      console.warn('RealtimeClient is not connected. Unable to cancel response.');
+      return { item: null };
+    }
+
     if (!id) {
       this.realtime.send('response.cancel');
       return { item: null };
