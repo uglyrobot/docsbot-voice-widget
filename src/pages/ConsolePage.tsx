@@ -16,9 +16,7 @@ import { RealtimeClient } from '../lib/realtime-api-beta';
 import { ItemType } from '../lib/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
 
-import { X, Edit, Zap, ArrowUp, ArrowDown } from 'react-feather';
-import { Button } from '../components/button/Button';
-import { Toggle } from '../components/toggle/Toggle';
+import { X, ArrowUp, ArrowDown } from 'react-feather';
 import { Voice } from '../components/voice/Voice';
 
 import './ConsolePage.scss';

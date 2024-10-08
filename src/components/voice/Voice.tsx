@@ -133,20 +133,20 @@ export const Voice: React.FC<VoiceProps> = ({
 
   return (
     <div
-      className={`voice-widget ${state} ${
+      className={`docsbot-voice-widget ${state} ${
         isConnected ? 'connected' : 'disconnected'
       }`}
       onClick={handleClick}
     >
         {state === 'open' && captionHtml && (
           <div
-            className="caption-bubble"
+            className="docsbot-voice-caption-bubble"
             dangerouslySetInnerHTML={{ __html: captionHtml }}
           />
         )}
 
         <div
-        className="circle"
+        className="docsbot-voice-circle"
         style={state === 'open' ? {
           boxShadow: `
                 0 0 0px hsla(33, 100%, 80%, ${glowIntensity[0]}),
@@ -161,20 +161,20 @@ export const Voice: React.FC<VoiceProps> = ({
         } : undefined}
       >
         {state === 'closed' ? (
-          <MicIcon className="mic-icon" />
+          <MicIcon className="docsbot-voice-mic-icon" />
         ) : state === 'starting' ? (
-          <div className="starting-state">
-            <Loader className="spinner" />
+          <div className="docsbot-voice-starting-state">
+            <Loader className="docsbot-voice-spinner" />
           </div>
         ) : (
           <>
-            <div className="gradient-background"></div>
-            <div className="stop-icon-container">
-              <Square className="stop-icon" />
+            <div className="docsbot-voice-gradient-background"></div>
+            <div className="docsbot-voice-stop-icon-container">
+              <Square className="docsbot-voice-stop-icon" />
             </div>
-            <div className="canvas-container">
-              <canvas ref={clientCanvasRef} className="client-canvas" />
-              <div className="mic-icon-overlay"></div>
+            <div className="docsbot-voice-canvas-container">
+              <canvas ref={clientCanvasRef} className="docsbot-voice-client-canvas" />
+              <div className="docsbot-voice-mic-icon-overlay"></div>
             </div>
           </>
         )}

@@ -1,4 +1,4 @@
-.voice-widget {
+.docsbot-voice-widget {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -12,20 +12,20 @@
   font-family: 'Roboto', sans-serif;
   z-index: 99999997;
 
-  &.closed .circle {
+  &.closed .docsbot-voice-circle {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 
     &:hover {
       transform: scale(1.05);
       box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-      .mic-icon {
+      .docsbot-voice-mic-icon {
         opacity: 1;
       }
     }
   }
 
-  &.starting .circle {
-    animation: pulse 1s infinite;
+  &.starting .docsbot-voice-circle {
+    animation: docsbot-voice-pulse 1s infinite;
     &::after {
       content: '';
       position: absolute;
@@ -35,11 +35,11 @@
       bottom: -3px;
       border-radius: 50%;
       border: 3px solid #008b8b;
-      animation: pulseBorder 1s infinite;
+      animation: docsbot-voice-pulseBorder 1s infinite;
     }
   }
 
-  &.open .circle {
+  &.open .docsbot-voice-circle {
     width: 100px;
     height: 100px;
     bottom: 10px;
@@ -48,7 +48,7 @@
     transform: translateX(-50%);
   }
 
-  .circle {
+  .docsbot-voice-circle {
     position: absolute;
     bottom: 0;
     right: 0;
@@ -66,7 +66,7 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: width 0.3s ease, height 0.3s ease, box-shadow 0.01s ease-out, bottom 1s ease;
 
-    .starting-state {
+    .docsbot-voice-starting-state {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -74,12 +74,12 @@
       height: 100%;
     }
 
-    .spinner {
-      animation: spin 2s linear infinite;
+    .docsbot-voice-spinner {
+      animation: docsbot-voice-spin 2s linear infinite;
       color: white;
     }
-    .mic-icon,
-    .stop-icon {
+    .docsbot-voice-mic-icon,
+    .docsbot-voice-stop-icon {
       color: white;
       width: 24px;
       height: 24px;
@@ -88,15 +88,15 @@
       opacity: 0.9;
     }
 
-    .pulse {
+    .docsbot-voice-pulse {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       background-color: rgba(255, 255, 255, 0.6);
-      animation: pulse 1s infinite;
+      animation: docsbot-voice-pulse 1s infinite;
     }
 
-    .gradient-background {
+    .docsbot-voice-gradient-background {
       position: absolute;
       top: 0;
       left: 0;
@@ -115,12 +115,12 @@
         radial-gradient(at 74% 23%, hsla(239, 91%, 62%, 1) 0px, transparent 50%),
         radial-gradient(at 32% 51%, hsla(311, 67%, 68%, 1) 0px, transparent 50%);
       background-size: 200% 200%;
-      animation: moveGradient 10s ease infinite;
+      animation: docsbot-voice-moveGradient 10s ease infinite;
       border-radius: 50%; // This ensures the gradient background is circular
     }
 
-    .stop-icon-container,
-    .canvas-container {
+    .docsbot-voice-stop-icon-container,
+    .docsbot-voice-canvas-container {
       position: absolute;
       top: 0;
       left: 0;
@@ -129,7 +129,7 @@
       transition: opacity 0.3s ease;
     }
 
-    .stop-icon-container {
+    .docsbot-voice-stop-icon-container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -137,21 +137,21 @@
       pointer-events: none;
     }
 
-    &:hover .stop-icon-container {
+    &:hover .docsbot-voice-stop-icon-container {
       opacity: 1;
       pointer-events: auto;
     }
 
-    &:hover .canvas-container {
+    &:hover .docsbot-voice-canvas-container {
       opacity: 0;
     }
 
-    .stop-icon {
+    .docsbot-voice-stop-icon {
       position: relative;
       z-index: 2;
     }
 
-    .canvas-container {
+    .docsbot-voice-canvas-container {
       position: relative;
       width: 100%;
       height: 100%;
@@ -161,7 +161,7 @@
       overflow: hidden;
       border-radius: 50%;
 
-      .client-canvas {
+      .docsbot-voice-client-canvas {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -176,7 +176,7 @@
       }
     }
 
-    .mic-icon-overlay {
+    .docsbot-voice-mic-icon-overlay {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -194,7 +194,7 @@
     }
   }
 
-  @keyframes spin {
+  @keyframes docsbot-voice-spin {
     0% {
       transform: rotate(0deg);
     }
@@ -203,7 +203,7 @@
     }
   }
 
-  .caption-bubble {
+  .docsbot-voice-caption-bubble {
     background-color: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(5px);
     box-shadow: 0 0 5px rgba(0, 0, 0, 1);
@@ -214,10 +214,10 @@
     overflow: hidden;
     bottom: 140px;
     opacity: 0;
-    animation: popupAnimation 0.3s ease-out 0.3s forwards;
+    animation: docsbot-voice-popupAnimation 0.3s ease-out 0.3s forwards;
     transform-origin: bottom center;
 
-    @keyframes popupAnimation {
+    @keyframes docsbot-voice-popupAnimation {
       0% {
         transform: scale(0.25);
         opacity: 0;
@@ -355,7 +355,7 @@
   }
 }
 
-@keyframes pulse {
+@keyframes docsbot-voice-pulse {
   0% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(0, 139, 139, 0.7);
@@ -370,7 +370,7 @@
   }
 }
 
-@keyframes pulseBorder {
+@keyframes docsbot-voice-pulseBorder {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -385,7 +385,7 @@
   }
 }
 
-@keyframes moveGradient {
+@keyframes docsbot-voice-moveGradient {
   0% {
     background-position: 0% 50%;
     transform: rotate(0deg) scale(1);
