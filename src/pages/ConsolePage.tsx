@@ -281,13 +281,18 @@ export function ConsolePage() {
       }
     });
 
+    // Add this new event handler for the 'close' event
+    client.on('close', () => {
+      disconnectConversation();
+    });
+
     setItems(client.conversation.getItems());
 
     return () => {
       // cleanup; resets to defaults
       client.reset();
     };
-  }, []);
+  }, [disconnectConversation]);
 
   const handleVoiceStart = async () => {
     if (!isConnected) {

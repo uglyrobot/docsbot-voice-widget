@@ -63,92 +63,41 @@ export class RealtimeAPI extends RealtimeEventHandler {
     if (this.isConnected()) {
       throw new Error(`Already connected`);
     }
-    if (globalThis.document) {
-      /**
-       * Web browser
-       */
-      if (this.apiKey) {
-        console.warn(
-          'Warning: Connecting using API key in the browser, this is not recommended',
-        );
-      }
-      const WebSocket = globalThis.WebSocket;
-      const ws = new WebSocket(`${this.url}`);
-      ws.addEventListener('message', (event) => {
-        const message = JSON.parse(event.data);
-        this.receive(message.type, message);
-      });
-      return new Promise((resolve, reject) => {
-        const connectionErrorHandler = (error) => {
-          console.warn('connectionErrorHandler', error);
+
+    /**
+     * Web browser
+     */
+    const WebSocket = globalThis.WebSocket;
+    const ws = new WebSocket(`${this.url}`);
+    ws.addEventListener('message', (event) => {
+      const message = JSON.parse(event.data);
+      this.receive(message.type, message);
+    });
+    return new Promise((resolve, reject) => {
+      const connectionErrorHandler = (error) => {
+        console.warn('connectionErrorHandler', error);
+        this.disconnect(ws);
+        reject(new Error(`Could not connect to "${this.url}"`));
+      };
+      ws.addEventListener('error', connectionErrorHandler);
+      ws.addEventListener('open', () => {
+        this.log(`Connected to "${this.url}"`);
+        ws.removeEventListener('error', connectionErrorHandler);
+        ws.addEventListener('error', () => {
           this.disconnect(ws);
-          reject(new Error(`Could not connect to "${this.url}"`));
-        };
-        ws.addEventListener('error', connectionErrorHandler);
-        ws.addEventListener('open', () => {
-          this.log(`Connected to "${this.url}"`);
-          ws.removeEventListener('error', connectionErrorHandler);
-          ws.addEventListener('error', () => {
-            this.disconnect(ws);
-            this.log(`Error, disconnected from "${this.url}"`);
-            this.dispatch('close', { error: true });
-          });
-          ws.addEventListener('close', () => {
-            this.disconnect(ws);
-            this.log(`Disconnected from "${this.url}"`);
-            this.dispatch('close', { error: false });
-          });
-          this.ws = ws;
-          resolve(true);
+          this.log(`Error, disconnected from "${this.url}"`);
+          this.dispatch('close', { error: true });
         });
-      });
-    } else {
-      /**
-       * Node.js
-       */
-      const moduleName = 'ws';
-      const wsModule = await import(/* webpackIgnore: true */ moduleName);
-      const WebSocket = wsModule.default;
-      const ws = new WebSocket(
-        'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01',
-        [],
-        {
-          finishRequest: (request) => {
-            // Auth
-            request.setHeader('Authorization', `Bearer ${this.apiKey}`);
-            request.setHeader('OpenAI-Beta', 'realtime=v1');
-            request.end();
-          },
-        },
-      );
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
-        this.receive(message.type, message);
-      });
-      return new Promise((resolve, reject) => {
-        const connectionErrorHandler = () => {
+        ws.addEventListener('close', () => {
           this.disconnect(ws);
-          reject(new Error(`Could not connect to "${this.url}"`));
-        };
-        ws.on('error', connectionErrorHandler);
-        ws.on('open', () => {
-          this.log(`Connected to "${this.url}"`);
-          ws.removeListener('error', connectionErrorHandler);
-          ws.on('error', () => {
-            this.disconnect(ws);
-            this.log(`Error, disconnected from "${this.url}"`);
-            this.dispatch('close', { error: true });
-          });
-          ws.on('close', () => {
-            this.disconnect(ws);
-            this.log(`Disconnected from "${this.url}"`);
-            this.dispatch('close', { error: false });
-          });
-          this.ws = ws;
-          resolve(true);
+          this.log(`Disconnected from "${this.url}"`);
+          this.dispatch('close', { error: false });
         });
+        this.ws = ws;
+        resolve(true);
       });
-    }
+    });
+
   }
 
   /**
