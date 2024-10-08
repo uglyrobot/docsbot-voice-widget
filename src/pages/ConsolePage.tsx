@@ -116,7 +116,14 @@ export function ConsolePage() {
     setItems(client.conversation.getItems());
 
     // Connect to microphone
-    await wavRecorder.begin();
+    try {
+      await wavRecorder.begin();
+    } catch (error) {
+      console.error("Error connecting to microphone:", error);
+      alert("Microphone access was blocked. Please grant permission and try again.");
+      setIsConnected(false);
+      return false;
+    }
 
     // Connect to audio output
     await wavStreamPlayer.connect();
@@ -125,10 +132,12 @@ export function ConsolePage() {
     await client.connect();
 
     if (client.getTurnDetectionType() === 'server_vad') {
-      await wavRecorder.record((data) => client.appendInputAudio(data.mono));
+       await wavRecorder.record((data) => client.appendInputAudio(data.mono));
     }
     await client.waitForSessionCreated();
     setIsConnected(true);
+    startRecording();
+    return true;
   }, []);
 
   /**
@@ -294,11 +303,12 @@ export function ConsolePage() {
     };
   }, [disconnectConversation]);
 
-  const handleVoiceStart = async () => {
+  // Update the handleVoiceStart function to explicitly return a Promise<boolean>
+  const handleVoiceStart = async (): Promise<boolean> => {
     if (!isConnected) {
-      await connectConversation();
+      return await connectConversation();
     }
-    startRecording();
+    return true; // Return true if already connected
   };
 
   const handleVoiceStop = () => {
@@ -457,35 +467,6 @@ export function ConsolePage() {
                 );
               })}
             </div>
-          </div>
-          <div className="content-actions">
-            <Toggle
-              defaultValue={false}
-              labels={['Manual', 'Auto']}
-              values={['none', 'server_vad']}
-              onChange={(_, value) => changeTurnEndType(value)}
-            />
-            <div className="spacer" />
-            {isConnected && canPushToTalk && (
-              <Button
-                label={isRecording ? 'release to send' : 'push to talk'}
-                buttonStyle={isRecording ? 'alert' : 'regular'}
-                disabled={!isConnected || !canPushToTalk}
-                onMouseDown={startRecording}
-                onMouseUp={stopRecording}
-              />
-            )}
-            <div className="spacer" />
-            {/* Button to connect or disconnect from the conversation 
-            <Button
-              label={isConnected ? 'disconnect' : 'connect'}
-              iconPosition={isConnected ? 'end' : 'start'}
-              icon={isConnected ? X : Zap}
-              buttonStyle={isConnected ? 'regular' : 'action'}
-              onClick={
-                isConnected ? disconnectConversation : connectConversation
-              }
-            />*/}
           </div>
         </div>
       </div>

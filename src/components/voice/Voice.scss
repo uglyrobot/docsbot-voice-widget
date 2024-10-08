@@ -3,11 +3,14 @@
   bottom: 20px;
   right: 20px;
   width: 400px;
+  height: fit-content;
+  max-height: 75vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
   font-family: 'Roboto', sans-serif;
+  z-index: 99999997;
 
   &.closed .circle {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;

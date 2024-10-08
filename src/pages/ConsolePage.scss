@@ -7,7 +7,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 0px 8px;
+  margin: 0px;  // Remove the horizontal margin
+  
   & > div {
     flex-shrink: 0;
   }
@@ -36,7 +37,8 @@
   .content-main {
     flex-grow: 1;
     flex-shrink: 1 !important;
-    margin: 0px 16px;
+    margin: 0px;  // Remove horizontal margin
+    padding: 0px 16px;  // Add padding instead
     display: flex;
     overflow: hidden;
     margin-bottom: 24px;
@@ -67,7 +69,8 @@
     }
     .content-right {
       width: 300px;
-      flex-shrink: 0;
+      min-width: 0;  // Allow content to shrink if needed
+      flex-shrink: 1;  // Allow shrinking
       display: flex;
       flex-direction: column;
       margin-left: 24px;
@@ -213,9 +216,13 @@
       flex-direction: column;
       color: #18181b;
       gap: 8px;
+      min-width: 0;  // Allow content to shrink if needed
       .event-summary {
         padding: 4px 8px;
         margin: 0px -8px;
+        overflow: hidden;  // Hide overflowing content
+        text-overflow: ellipsis;  // Show ellipsis for overflowing text
+        white-space: nowrap;  // Prevent wrapping
         &:hover {
           border-radius: 8px;
           background-color: #f0f0f0;

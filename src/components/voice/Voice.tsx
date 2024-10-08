@@ -7,7 +7,7 @@ import { ReactComponent as MicIcon } from './MicIcon.svg';
 const markdown = require('micro-down');
 
 interface VoiceProps {
-  onStart: () => void;
+  onStart: () => Promise<boolean>;
   onStop: () => void;
   isConnected: boolean;
   clientAudio: React.RefObject<WavRecorder>;
@@ -118,10 +118,13 @@ export const Voice: React.FC<VoiceProps> = ({
     }
   }, [caption]);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (state === 'closed') {
       setState('starting');
-      onStart();
+      const success = await onStart();
+      if (!success) {
+        setState('closed');
+      }
     } else if (state === 'starting' || state === 'open') {
       setState('closed');
       onStop();
