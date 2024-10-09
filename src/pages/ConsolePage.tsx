@@ -130,7 +130,17 @@ export function ConsolePage() {
     startTimeRef.current = new Date().toISOString();
     setRealtimeEvents([]);
     setItems(client.conversation.getItems());
-    setTotalPrice(0); // Reset the price when starting a new conversation
+    
+    // Reset all counts and costs
+    setTotalPrice(0);
+    setTextInputTokens(0);
+    setAudioInputTokens(0);
+    setTextOutputTokens(0);
+    setAudioOutputTokens(0);
+    setTextInputCost(0);
+    setAudioInputCost(0);
+    setTextOutputCost(0);
+    setAudioOutputCost(0);
 
     // Connect to microphone
     try {

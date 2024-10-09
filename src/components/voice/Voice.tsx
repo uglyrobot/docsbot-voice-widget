@@ -113,7 +113,12 @@ export const Voice: React.FC<VoiceProps> = ({
 
   useEffect(() => {
     if (caption) {
-      const parsedHtml = markdown.parse(caption);
+      // Remove incomplete markdown images, but keep the alt text
+      let filteredCaption = caption.replace(/!\[([^\]]*?)(?:\](?:\([^)]*)?)?$/gm, '$1');
+      // Remove incomplete markdown links, but keep the link text
+      filteredCaption = filteredCaption.replace(/\[([^\]]*?)(?:\](?:\([^)"]*(?:"[^"]*")?[^)]*)?)?$/gm, '$1');
+      
+      const parsedHtml = markdown.parse(filteredCaption);
       setCaptionHtml(parsedHtml);
     }
   }, [caption]);
