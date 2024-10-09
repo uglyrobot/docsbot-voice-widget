@@ -78,6 +78,24 @@ export function ConsolePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [latestTranscript, setLatestTranscript] = useState<string>("");
 
+  // Add new state variable for price
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  // Add new state variables for the timer
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Add new state variables for token usage and costs
+  const [textInputTokens, setTextInputTokens] = useState(0);
+  const [audioInputTokens, setAudioInputTokens] = useState(0);
+  const [textOutputTokens, setTextOutputTokens] = useState(0);
+  const [audioOutputTokens, setAudioOutputTokens] = useState(0);
+
+  const [textInputCost, setTextInputCost] = useState(0);
+  const [audioInputCost, setAudioInputCost] = useState(0);
+  const [textOutputCost, setTextOutputCost] = useState(0);
+  const [audioOutputCost, setAudioOutputCost] = useState(0);
+
   /**
    * Utility for formatting the timing of logs
    */
@@ -112,6 +130,7 @@ export function ConsolePage() {
     startTimeRef.current = new Date().toISOString();
     setRealtimeEvents([]);
     setItems(client.conversation.getItems());
+    setTotalPrice(0); // Reset the price when starting a new conversation
 
     // Connect to microphone
     try {
@@ -135,6 +154,16 @@ export function ConsolePage() {
     await client.waitForSessionCreated();
     setIsConnected(true);
     startRecording();
+
+    // Reset and start the timer
+    setTimerSeconds(0);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    timerIntervalRef.current = setInterval(() => {
+      setTimerSeconds(prev => prev + 1);
+    }, 1000);
+
     return true;
   }, []);
 
@@ -155,6 +184,11 @@ export function ConsolePage() {
 
     const wavStreamPlayer = wavStreamPlayerRef.current;
     await wavStreamPlayer.interrupt();
+
+    // Stop the timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
   }, []);
 
   const deleteConversationItem = useCallback(async (id: string) => {
@@ -258,6 +292,32 @@ export function ConsolePage() {
           return realtimeEvents.concat(realtimeEvent);
         }
       });
+
+      // Update the price calculation in the 'realtime.event' handler
+      if (realtimeEvent.event.type === 'response.done') {
+        const usage = realtimeEvent.event.response.usage;
+        const newTextInputTokens = usage.input_token_details.text_tokens;
+        const newAudioInputTokens = usage.input_token_details.audio_tokens;
+        const newTextOutputTokens = usage.output_token_details.text_tokens;
+        const newAudioOutputTokens = usage.output_token_details.audio_tokens;
+
+        const newTextInputCost = (newTextInputTokens / 1000000) * 5;
+        const newAudioInputCost = (newAudioInputTokens / 1000000) * 100;
+        const newTextOutputCost = (newTextOutputTokens / 1000000) * 20;
+        const newAudioOutputCost = (newAudioOutputTokens / 1000000) * 200;
+
+        setTextInputTokens(prev => prev + newTextInputTokens);
+        setAudioInputTokens(prev => prev + newAudioInputTokens);
+        setTextOutputTokens(prev => prev + newTextOutputTokens);
+        setAudioOutputTokens(prev => prev + newAudioOutputTokens);
+
+        setTextInputCost(prev => prev + newTextInputCost);
+        setAudioInputCost(prev => prev + newAudioInputCost);
+        setTextOutputCost(prev => prev + newTextOutputCost);
+        setAudioOutputCost(prev => prev + newAudioOutputCost);
+
+        setTotalPrice(prev => prev + newTextInputCost + newAudioInputCost + newTextOutputCost + newAudioOutputCost);
+      }
     });
     client.on('error', (event: any) => console.error(event));
     client.on('conversation.interrupted', async () => {
@@ -315,6 +375,21 @@ export function ConsolePage() {
     }
   };
 
+  // Add a useEffect to clean up the timer interval
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Format the timer display
+  const formatTimer = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   /**
    * Render the application
@@ -324,6 +399,66 @@ export function ConsolePage() {
       <div className="content-top">
         <div className="content-title">
           <span>realtime console</span>
+        </div>
+        {/* Add timer display */}
+        <div className="timer-display" style={{
+          position: 'absolute',
+          top: '10px',
+          right: '20px',
+          fontSize: '24px',
+          fontWeight: 'bold',
+        }}>
+          {formatTimer(timerSeconds)}
+        </div>
+        {/* Move price display below the timer */}
+        <div className="usage-table" style={{
+          position: 'absolute',
+          top: '50px',
+          right: '20px',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '12px',
+        }}>
+          <style>
+            {`
+              .usage-table table {
+                border-collapse: collapse;
+              }
+              .usage-table th, .usage-table td {
+                border: 1px solid #ddd;
+                padding: 6px;
+              }
+            `}
+          </style>
+          <table style={{ borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Input</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Text</td>
+                <td>{textInputTokens} (${textInputCost.toFixed(4)})</td>
+                <td>{textOutputTokens} (${textOutputCost.toFixed(4)})</td>
+              </tr>
+              <tr>
+                <td>Audio</td>
+                <td>{audioInputTokens} (${audioInputCost.toFixed(4)})</td>
+                <td>{audioOutputTokens} (${audioOutputCost.toFixed(4)})</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style={{ 
+            marginTop: '10px',
+            fontSize: '24px',
+            fontWeight: 'bold',
+          }}>
+            Total: ${totalPrice.toFixed(4)}
+          </div>
         </div>
       </div>
       <div className="content-main">
