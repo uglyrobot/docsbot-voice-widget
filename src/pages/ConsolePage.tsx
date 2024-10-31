@@ -169,15 +169,6 @@ export function ConsolePage() {
     setIsConnected(true);
     startRecording();
 
-    // Reset and start the timer
-    setTimerSeconds(0);
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-    timerIntervalRef.current = setInterval(() => {
-      setTimerSeconds(prev => prev + 1);
-    }, 1000);
-
     return true;
   }, []);
 
@@ -186,6 +177,7 @@ export function ConsolePage() {
    */
   const disconnectConversation = useCallback(async () => {
     setIsConnected(false);
+    setIsRecording(false);
     // Remove these two lines to keep events and conversation items
     // setRealtimeEvents([]);
     // setItems([]);
@@ -376,13 +368,20 @@ export function ConsolePage() {
     client.on('close', async () => {
       console.log('WebSocket connection closed');
       await disconnectConversation();
-      setIsConnected(false); // Ensure connection state is false
-      setIsRecording(false); // Stop recording state
       
-      // Clean up audio
+      // Stop the timer
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+
+      // Clean up audio devices
       const wavRecorder = wavRecorderRef.current;
       await wavRecorder.end();
       await wavStreamPlayer.interrupt();
+
+      // Optional: Clear conversation if desired
+      // setItems([]);
+      // setRealtimeEvents([]);
     });
 
     setItems(client.conversation.getItems());
@@ -407,14 +406,24 @@ export function ConsolePage() {
     }
   };
 
-  // Add a useEffect to clean up the timer interval
+  // Modify the useEffect for timer cleanup to be more comprehensive
   useEffect(() => {
+    // Start timer when connected
+    if (isConnected) {
+      setTimerSeconds(0);
+      timerIntervalRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    }
+
+    // Cleanup function that runs when component unmounts or isConnected changes
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
       }
     };
-  }, []);
+  }, [isConnected]); // Only re-run when connection status changes
 
   // Format the timer display
   const formatTimer = (totalSeconds: number) => {

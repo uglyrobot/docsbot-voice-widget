@@ -31,7 +31,10 @@ export const Voice: React.FC<VoiceProps> = ({
   useEffect(() => {
     if (state === 'starting' && isConnected) {
       setState('open');
+    } else if (!isConnected) {
+      //setState('closed');
     }
+    console.log('state', state, 'isConnected', isConnected);
   }, [state, isConnected]);
 
   useEffect(() => {
