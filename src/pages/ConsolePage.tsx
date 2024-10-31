@@ -96,6 +96,10 @@ export function ConsolePage() {
   const [textOutputCost, setTextOutputCost] = useState(0);
   const [audioOutputCost, setAudioOutputCost] = useState(0);
 
+  // Add new state variables for cached tokens
+  const [cachedTextTokens, setCachedTextTokens] = useState(0);
+  const [cachedAudioTokens, setCachedAudioTokens] = useState(0);
+
   /**
    * Utility for formatting the timing of logs
    */
@@ -308,25 +312,35 @@ export function ConsolePage() {
         const usage = realtimeEvent.event.response.usage;
         const newTextInputTokens = usage.input_token_details.text_tokens;
         const newAudioInputTokens = usage.input_token_details.audio_tokens;
+        const newCachedTextTokens = usage.input_token_details.cached_tokens_details.text_tokens;
+        const newCachedAudioTokens = usage.input_token_details.cached_tokens_details.audio_tokens;
         const newTextOutputTokens = usage.output_token_details.text_tokens;
         const newAudioOutputTokens = usage.output_token_details.audio_tokens;
 
-        const newTextInputCost = (newTextInputTokens / 1000000) * 5;
-        const newAudioInputCost = (newAudioInputTokens / 1000000) * 100;
+        // Regular token costs
+        const newTextInputCost = ((newTextInputTokens - newCachedTextTokens) / 1000000) * 5;
+        const newAudioInputCost = ((newAudioInputTokens - newCachedAudioTokens) / 1000000) * 100;
         const newTextOutputCost = (newTextOutputTokens / 1000000) * 20;
         const newAudioOutputCost = (newAudioOutputTokens / 1000000) * 200;
 
+        // Cached token costs (50% off for text, 80% off for audio)
+        const cachedTextCost = (newCachedTextTokens / 1000000) * 2.5; // 50% of 5
+        const cachedAudioCost = (newCachedAudioTokens / 1000000) * 20; // 80% of 100
+
         setTextInputTokens(prev => prev + newTextInputTokens);
         setAudioInputTokens(prev => prev + newAudioInputTokens);
+        setCachedTextTokens(prev => prev + newCachedTextTokens);
+        setCachedAudioTokens(prev => prev + newCachedAudioTokens);
         setTextOutputTokens(prev => prev + newTextOutputTokens);
         setAudioOutputTokens(prev => prev + newAudioOutputTokens);
 
-        setTextInputCost(prev => prev + newTextInputCost);
-        setAudioInputCost(prev => prev + newAudioInputCost);
+        setTextInputCost(prev => prev + newTextInputCost + cachedTextCost);
+        setAudioInputCost(prev => prev + newAudioInputCost + cachedAudioCost);
         setTextOutputCost(prev => prev + newTextOutputCost);
         setAudioOutputCost(prev => prev + newAudioOutputCost);
 
-        setTotalPrice(prev => prev + newTextInputCost + newAudioInputCost + newTextOutputCost + newAudioOutputCost);
+        setTotalPrice(prev => prev + newTextInputCost + newAudioInputCost + 
+          newTextOutputCost + newAudioOutputCost + cachedTextCost + cachedAudioCost);
       }
     });
     client.on('error', (event: any) => console.error(event));
@@ -358,9 +372,17 @@ export function ConsolePage() {
       }
     });
 
-    // Add this new event handler for the 'close' event
-    client.on('close', () => {
-      disconnectConversation();
+    // Update the 'close' event handler to properly clean up
+    client.on('close', async () => {
+      console.log('WebSocket connection closed');
+      await disconnectConversation();
+      setIsConnected(false); // Ensure connection state is false
+      setIsRecording(false); // Stop recording state
+      
+      // Clean up audio
+      const wavRecorder = wavRecorderRef.current;
+      await wavRecorder.end();
+      await wavStreamPlayer.interrupt();
     });
 
     setItems(client.conversation.getItems());
@@ -446,18 +468,21 @@ export function ConsolePage() {
               <tr>
                 <th></th>
                 <th>Input</th>
+                <th>Cached</th>
                 <th>Output</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>Text</td>
-                <td>{textInputTokens} (${textInputCost.toFixed(4)})</td>
+                <td>{textInputTokens - cachedTextTokens} (${((textInputTokens - cachedTextTokens) / 1000000 * 5).toFixed(4)})</td>
+                <td>{cachedTextTokens} (${(cachedTextTokens / 1000000 * 2.5).toFixed(4)})</td>
                 <td>{textOutputTokens} (${textOutputCost.toFixed(4)})</td>
               </tr>
               <tr>
                 <td>Audio</td>
-                <td>{audioInputTokens} (${audioInputCost.toFixed(4)})</td>
+                <td>{audioInputTokens - cachedAudioTokens} (${((audioInputTokens - cachedAudioTokens) / 1000000 * 100).toFixed(4)})</td>
+                <td>{cachedAudioTokens} (${(cachedAudioTokens / 1000000 * 20).toFixed(4)})</td>
                 <td>{audioOutputTokens} (${audioOutputCost.toFixed(4)})</td>
               </tr>
             </tbody>
