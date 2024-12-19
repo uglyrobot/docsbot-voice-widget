@@ -310,14 +310,14 @@ export function ConsolePage() {
         const newAudioOutputTokens = usage.output_token_details.audio_tokens;
 
         // Regular token costs
-        const newTextInputCost = ((newTextInputTokens - newCachedTextTokens) / 1000000) * 5;
-        const newAudioInputCost = ((newAudioInputTokens - newCachedAudioTokens) / 1000000) * 100;
-        const newTextOutputCost = (newTextOutputTokens / 1000000) * 20;
-        const newAudioOutputCost = (newAudioOutputTokens / 1000000) * 200;
+        const newTextInputCost = ((newTextInputTokens - newCachedTextTokens) / 1000000) * .6;
+        const newAudioInputCost = ((newAudioInputTokens - newCachedAudioTokens) / 1000000) * 10;
+        const newTextOutputCost = (newTextOutputTokens / 1000000) * 2.4;
+        const newAudioOutputCost = (newAudioOutputTokens / 1000000) * 20;
 
         // Cached token costs (50% off for text, 80% off for audio)
-        const cachedTextCost = (newCachedTextTokens / 1000000) * 2.5; // 50% of 5
-        const cachedAudioCost = (newCachedAudioTokens / 1000000) * 20; // 80% of 100
+        const cachedTextCost = (newCachedTextTokens / 1000000) * .3; 
+        const cachedAudioCost = (newCachedAudioTokens / 1000000) * .3;
 
         setTextInputTokens(prev => prev + newTextInputTokens);
         setAudioInputTokens(prev => prev + newAudioInputTokens);
