@@ -13,16 +13,16 @@ This is a React project created using `create-react-app` that is bundled via Web
 Install it by extracting the contents of this package and using;
 
 ```shell
-$ npm i
+$ pnpm install --frozen-lockfile
 ```
 
 Start your server with:
 
 ```shell
-$ npm start
+$ pnpm start
 ```
 
-It should be available via `localhost:3000`.
+It should be available via `localhost:3006`.
 
 # Table of contents
 
